@@ -109,6 +109,14 @@ resource "aws_instance" "cka-master" {
   }
 }
 
+resource "aws_route53_record" "cka_master-r53rec" {
+  zone_id = "Z1UKXVYYQ8MSN8"
+  name = "k8s-control.curtisnoel.net"
+  type="A"
+  ttl="300"
+  records = [aws_instance.cka-master.public_ip]
+}
+
 #aws s3api create-bucket --bucket cnoel-cka --region us-east-1
 #aws s3api put-bucket-encryption --bucket cnoel-cka  --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
 #aws s3api put-object --bucket  cnoel-cka  --key tfstate
