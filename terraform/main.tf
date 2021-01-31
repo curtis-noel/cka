@@ -5,9 +5,9 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket = var.backend_bucket
+    bucket = "cnoel-cka"
     key    = "tfstate"
-    region = var.region
+    region = "us-east-1"
   }
 }
 

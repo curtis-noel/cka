@@ -2,10 +2,10 @@ variable "hosted_zone_id" {
   type = string
 }
 
-variable "backend_bucket" {
+variable "k8s_control_name" {
   type = string
 }
 
-variable "region" {
+variable "availability_zone_1a" {
   type = string
 }

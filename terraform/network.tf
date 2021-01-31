@@ -1,3 +1,25 @@
+resource "aws_vpc" "main" {
+  cidr_block                       = "10.0.0.0/16"
+  enable_dns_support               = true
+  enable_dns_hostnames             = true
+  assign_generated_ipv6_cidr_block = true
+
+  tags = {
+    Name = "cka-vpc"
+  }
+}
+
+resource "aws_subnet" "public-1a" {
+  vpc_id                          = aws_vpc.main.id
+  cidr_block                      = "10.0.128.0/24"
+  availability_zone               = var.availability_zone_1a
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)
+  assign_ipv6_address_on_creation = true
+  tags = {
+    Name = "cka-public-1a"
+  }
+}
+
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
@@ -14,7 +36,7 @@ resource "aws_route_table" "rt-public" {
   }
   route {
     ipv6_cidr_block = "::/0"
-    gateway_id = aws_internet_gateway.gw.id
+    gateway_id      = aws_internet_gateway.gw.id
   }
   tags = {
     Name = "cka-rt"
@@ -24,30 +46,4 @@ resource "aws_route_table" "rt-public" {
 resource "aws_route_table_association" "rta-public-1a" {
   subnet_id      = aws_subnet.public-1a.id
   route_table_id = aws_route_table.rt-public.id
-}
-
-resource "aws_security_group" "k8s-control-sg" {
-  name        = "allow_ssh"
-  description = "Allow SSH inbound traffic"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    ipv6_cidr_blocks = ["::/0"]
-  }
 }
