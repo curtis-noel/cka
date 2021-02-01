@@ -8,7 +8,7 @@ data "template_file" "k8s-control-user-data" {
 
 resource "aws_instance" "k8s-control" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3a.medium"
+  instance_type               = "t3a.xlarge"
   ipv6_address_count          = 1
   subnet_id                   = aws_subnet.public-1a.id
   associate_public_ip_address = true
@@ -54,6 +54,3 @@ resource "aws_security_group" "k8s-control-sg" {
   }
 }
 
-output "k8s-control-node" {
-  value = aws_instance.k8s-control.public_ip
-}
