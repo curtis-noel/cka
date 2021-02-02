@@ -7,3 +7,7 @@
 
 # .tfvars files
 *.tfvars
+
+#sublime 
+*.sublime-project
+*.sublime-workspace
