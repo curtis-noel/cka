@@ -9,3 +9,7 @@ variable "k8s_control_name" {
 variable "availability_zone_1a" {
   type = string
 }
+
+variable "availability_zone_1b" {
+  type = string
+}

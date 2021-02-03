@@ -58,8 +58,10 @@ kubeadm init --config /home/ubuntu/config.yml
 mkdir -p /home/ubuntu/.kube
 cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
 chown -R ubuntu:ubuntu /home/ubuntu/.kube
-#test context of cloud init
-sudo cp /etc/kubernetes/admin.conf $HOME 
-sudo chown $(id -u):$(id -g) $HOME/admin.conf
-export KUBECONFIG=$HOME/admin.conf
+
+mkdir ./.kube
+sudo cp /etc/kubernetes/admin.conf ./.kube
+export KUBECONFIG=./.kube/admin.conf
 kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+rm -rf ./kube
+

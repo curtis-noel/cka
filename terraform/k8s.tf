@@ -6,10 +6,9 @@ data "template_file" "k8s-control-user-data" {
   }
 }
 
-resource "aws_instance" "k8s-control" {
+resource "aws_instance" "k8s_master" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t3a.xlarge"
-  ipv6_address_count          = 1
   subnet_id                   = aws_subnet.public-1a.id
   associate_public_ip_address = true
   key_name                    = "cka"
@@ -28,6 +27,43 @@ resource "aws_instance" "k8s-control" {
 #   records = [aws_instance.k8s-control.public_ip]
 # }
 
+resource "aws_lb" "k8s_load_balancer" {
+  name               = "k8s-aws-lb"
+  load_balancer_type = "network"
+  internal           = true
+  subnets            = [aws_subnet.public-1a.id, aws_subnet.public-1b.id]
+}
+
+resource "aws_lb_listener" "k8s_listener" {
+  load_balancer_arn = aws_lb.k8s_load_balancer.arn
+  port              = 6443
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = aws_lb_target_group.k8s_tg.arn
+    type             = "forward"
+  }
+}
+resource "aws_lb_target_group" "k8s_tg" {
+  name                 = "k8s-tg"
+  port                 = 6443
+  protocol             = "TCP"
+  vpc_id               = aws_vpc.main.id
+  target_type          = "instance"
+  deregistration_delay = 90
+  health_check {
+    interval            = 10
+    port                = 6443
+    protocol            = "TCP"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+  }
+}
+resource "aws_lb_target_group_attachment" "k8s_tga_master" {
+  target_group_arn = aws_lb_target_group.k8s_tg.arn
+  port             = 6443
+  target_id        = aws_instance.k8s_master.id
+}
+
 resource "aws_security_group" "k8s-control-sg" {
   name        = "allow_ssh"
   description = "Allow SSH inbound traffic"
@@ -39,18 +75,19 @@ resource "aws_security_group" "k8s-control-sg" {
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "TCP"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    ipv6_cidr_blocks = ["::/0"]
   }
 }
 

@@ -1,22 +1,28 @@
 resource "aws_vpc" "main" {
-  cidr_block                       = "10.0.0.0/16"
-  enable_dns_support               = true
-  enable_dns_hostnames             = true
-  assign_generated_ipv6_cidr_block = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
-    Name = "cka-vpc"
+    Name = "k8s-vpc"
   }
 }
 
 resource "aws_subnet" "public-1a" {
-  vpc_id                          = aws_vpc.main.id
-  cidr_block                      = "10.0.128.0/24"
-  availability_zone               = var.availability_zone_1a
-  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)
-  assign_ipv6_address_on_creation = true
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.128.0/24"
+  availability_zone = var.availability_zone_1a
   tags = {
-    Name = "cka-public-1a"
+    Name = "k8s-public-1a"
+  }
+}
+
+resource "aws_subnet" "public-1b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.129.0/24"
+  availability_zone = var.availability_zone_1b
+  tags = {
+    Name = "k8s-public-1b"
   }
 }
 
@@ -24,7 +30,7 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "cka-igw"
+    Name = "k8s-igw"
   }
 }
 
@@ -34,12 +40,8 @@ resource "aws_route_table" "rt-public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.gw.id
   }
-  route {
-    ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.gw.id
-  }
   tags = {
-    Name = "cka-rt"
+    Name = "k8s-rt"
   }
 }
 
